@@ -86,7 +86,16 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
           {!collapsed && (
             <div className="flex flex-col min-w-0">
               <span className="text-xs font-medium truncate">{user?.name || 'Student'}</span>
-              <span className="text-[10px] text-[#71717a] truncate">{user?.className || user?.class || 'Nedélemště'}</span>
+              <div className="flex items-center gap-1.5 min-w-0">
+                {user?.class && (
+                  <span className="text-[9px] font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded shrink-0">
+                    {user.class}
+                  </span>
+                )}
+                {user?.className && (
+                  <span className="text-[10px] text-[#71717a] truncate">{user.className}</span>
+                )}
+              </div>
             </div>
           )}
         </div>
