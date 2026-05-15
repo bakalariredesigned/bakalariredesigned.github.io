@@ -108,7 +108,7 @@ export default function Dashboard() {
             const nxt = cur || lessons.find((l: any) => timeToMins(l.hour?.BeginTime || '0:00') > nm) || lessons[0];
             setCurrentLesson(cur || null);
             setNextLesson(nxt || null);
-            setTodayLessons(lessons.slice(0, 5));
+            setTodayLessons(lessons);
           }
         }
       } finally {
