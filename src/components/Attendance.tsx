@@ -51,7 +51,6 @@ export default function Attendance() {
             const pct   = s.LessonsCount ? (total / s.LessonsCount) * 100 : 0;
             return { name: s.SubjectName || '—', total, lessons: s.LessonsCount || 0, pct };
           })
-          .filter((s: SubjectRow) => s.total > 0)
           .sort((a: SubjectRow, b: SubjectRow) => b.pct - a.pct);
         setSubjects(rows);
       }
