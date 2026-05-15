@@ -1,10 +1,12 @@
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Search, Bell, X, Check, CheckCheck, Trash2 } from 'lucide-react';
+import { Search, Bell, X, Check, CheckCheck, Trash2, GraduationCap, User, Calendar } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { bakalariService } from '../services/bakalariService';
+
+interface SearchResult { type: string; title: string; sub: string; path: string; }
 
 interface NotifItem { id: string; type: string; text: string; path: string; read: boolean; }
 
@@ -24,15 +26,50 @@ export default function Layout() {
   const [dismissed,  setDismissed]  = useState<Set<string>>(getDismissed);
   const [readIds,    setReadIds]    = useState<Set<string>>(getRead);
   const [showNotifs, setShowNotifs] = useState(false);
-  const bellRef = useRef<HTMLDivElement>(null);
+  const bellRef  = useRef<HTMLDivElement>(null);
+
+  // ── Global search ──────────────────────────────────────────────
+  const [searchQ,      setSearchQ]      = useState('');
+  const [searchItems,  setSearchItems]  = useState<SearchResult[]>([]);
+  const [searchLoaded, setSearchLoaded] = useState(false);
+  const [showSearch,   setShowSearch]   = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+
+  const loadSearchData = useCallback(async () => {
+    if (searchLoaded) return;
+    try {
+      const [marksData, tt] = await Promise.all([
+        bakalariService.getMarks(),
+        bakalariService.getTimetable('actual'),
+      ]);
+      const items: SearchResult[] = [];
+      marksData?.Subjects?.forEach((s: any) => {
+        items.push({ type:'subject', title: s.Subject?.Name || '', sub: `${s.Subject?.Abbrev||''} · průměr ${parseFloat(s.AverageText||'0').toFixed(2)}`, path:'/marks' });
+      });
+      const seenT = new Set<string>();
+      tt?.Teachers?.forEach((t: any) => {
+        if (!seenT.has(t.Id)) { seenT.add(t.Id); items.push({ type:'teacher', title: t.Name||t.Abbrev||'', sub:'Učitel · rozvrh', path:'/timetable' }); }
+      });
+      const seenS = new Set<string>();
+      tt?.Subjects?.forEach((s: any) => {
+        if (!seenS.has(s.Id)) { seenS.add(s.Id); items.push({ type:'timetable', title: s.Name||s.Abbrev||'', sub:`Rozvrh · ${s.Abbrev||''}`, path:'/timetable' }); }
+      });
+      setSearchItems(items);
+      setSearchLoaded(true);
+    } catch {}
+  }, [searchLoaded]);
+
+  const searchResults: SearchResult[] = searchQ.length < 2 ? [] :
+    searchItems.filter(i => i.title.toLowerCase().includes(searchQ.toLowerCase()) || i.sub.toLowerCase().includes(searchQ.toLowerCase())).slice(0, 7);
 
   const visible    = notifItems.filter(n => !dismissed.has(n.id));
   const unreadCount = visible.filter(n => !readIds.has(n.id)).length;
 
-  // Close on outside click
+  // Close dropdowns on outside click
   useEffect(() => {
     const h = (e: MouseEvent) => {
-      if (bellRef.current && !bellRef.current.contains(e.target as Node)) setShowNotifs(false);
+      if (bellRef.current  && !bellRef.current.contains(e.target as Node))   setShowNotifs(false);
+      if (searchRef.current && !searchRef.current.contains(e.target as Node)) setShowSearch(false);
     };
     document.addEventListener('mousedown', h);
     return () => document.removeEventListener('mousedown', h);
@@ -112,17 +149,51 @@ export default function Layout() {
       <Sidebar />
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-14 border-b border-[#27272a] px-6 flex items-center justify-between">
-          <div className="flex-1 max-w-xl">
-            <div className="relative group flex items-center bg-[#18181b] rounded-full px-3 py-1.5 border border-[#27272a] w-80">
-              <Search size={16} className="text-[#71717a] mr-2" />
+        <header className="h-14 border-b border-[#27272a] px-6 flex items-center justify-between relative z-40">
+          {/* Global Search */}
+          <div ref={searchRef} className="flex-1 max-w-md relative">
+            <div className={`flex items-center bg-[#18181b] rounded-full px-3 py-1.5 border transition-colors ${showSearch && searchQ ? 'border-indigo-500/50' : 'border-[#27272a]'}`}>
+              <Search size={14} className="text-[#71717a] mr-2 shrink-0" />
               <input
                 type="text"
-                placeholder="Hledej předměty, učitele nebo zkoušky..."
+                value={searchQ}
+                onChange={e => setSearchQ(e.target.value)}
+                onFocus={() => { setShowSearch(true); loadSearchData(); }}
+                placeholder="Hledej předměty, učitele…"
                 className="bg-transparent border-none outline-none text-xs text-[#fafafa] w-full placeholder:text-[#71717a]"
               />
-              <span className="ml-auto text-[10px] bg-[#27272a] px-1.5 rounded text-[#a1a1aa]">⌘K</span>
+              {searchQ
+                ? <button onClick={() => { setSearchQ(''); setShowSearch(false); }} className="ml-2 text-[#71717a] hover:text-[#fafafa]"><X size={13} /></button>
+                : <span className="ml-auto text-[10px] bg-[#27272a] px-1.5 rounded text-[#a1a1aa] shrink-0">⌘K</span>
+              }
             </div>
+
+            {/* Suggestions dropdown */}
+            <AnimatePresence>
+              {showSearch && searchQ.length >= 2 && (
+                <motion.div initial={{opacity:0,y:-6}} animate={{opacity:1,y:0}} exit={{opacity:0,y:-6}}
+                  className="absolute top-10 left-0 right-0 bg-[#18181b] border border-[#27272a] rounded-xl shadow-2xl overflow-hidden z-50">
+                  {searchResults.length === 0
+                    ? <div className="px-4 py-3 text-xs text-[#71717a]">Žádné výsledky pro „{searchQ}"</div>
+                    : searchResults.map((r, i) => {
+                        const Icon = r.type === 'teacher' ? User : r.type === 'subject' ? GraduationCap : Calendar;
+                        return (
+                          <button key={i} onClick={() => { navigate(r.path); setShowSearch(false); setSearchQ(''); }}
+                            className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#27272a] transition-colors text-left">
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${r.type==='teacher'?'bg-indigo-500/15 text-indigo-400':r.type==='subject'?'bg-emerald-500/15 text-emerald-400':'bg-amber-500/15 text-amber-400'}`}>
+                              <Icon size={13} />
+                            </div>
+                            <div className="min-w-0">
+                              <p className="text-xs font-medium text-[#fafafa] truncate">{r.title}</p>
+                              <p className="text-[10px] text-[#71717a] truncate">{r.sub}</p>
+                            </div>
+                          </button>
+                        );
+                      })
+                  }
+                </motion.div>
+              )}
+            </AnimatePresence>
           </div>
           <div className="flex items-center gap-4">
             {/* Notification bell */}

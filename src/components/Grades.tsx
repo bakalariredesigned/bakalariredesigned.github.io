@@ -25,16 +25,29 @@ export default function Grades() {
   const [search,    setSearch]    = useState('');
   const [sort,      setSort]      = useState<'default'|'worst'|'best'>('default');
   const [showFilter,setShowFilter]= useState(false);
+  // subjectId → teacher name (from timetable)
+  const [teacherMap, setTeacherMap] = useState<Record<string, string>>({});
 
   useEffect(() => {
-    Promise.all([bakalariService.getAllSubjects(), bakalariService.getAverageMark()])
-      .then(([subs, avg]) => {
+    Promise.all([bakalariService.getAllSubjects(), bakalariService.getAverageMark(), bakalariService.getTimetable('actual')])
+      .then(([subs, avg, tt]) => {
         setSubjects(subs.map((s: any) => ({
           id: s.id, name: s.name, abbrev: s.abbrev,
           average: parseFloat(s.averageText) || 0,
           marks: s.marks || [],
         })));
         setAvgMark(avg);
+        // Build subjectId → teacher name map from timetable
+        const tMap: Record<string, string> = {};
+        tt?.Days?.forEach((day: any) => {
+          day.Atoms?.forEach((atom: any) => {
+            if (atom.SubjectId && atom.TeacherId && !tMap[atom.SubjectId]) {
+              const teacher = tt.Teachers?.find((t: any) => t.Id === atom.TeacherId);
+              if (teacher) tMap[atom.SubjectId] = teacher.Name || teacher.Abbrev || '';
+            }
+          });
+        });
+        setTeacherMap(tMap);
       })
       .finally(() => setLoading(false));
   }, []);
@@ -199,6 +212,7 @@ export default function Grades() {
                           <div>
                             <p className="text-[10px] font-medium text-[#71717a] uppercase tracking-wider">{s.abbrev}</p>
                             <h4 className="text-sm font-semibold text-[#fafafa] mt-0.5 group-hover:text-indigo-400 transition-colors">{s.name}</h4>
+                            {teacherMap[s.id] && <p className="text-[10px] text-[#52525b] mt-0.5">{teacherMap[s.id]}</p>}
                           </div>
                           <div className={cn('w-12 h-12 rounded-lg flex items-center justify-center font-bold text-sm border', mc.bg, mc.text, mc.border)}>
                             {s.average > 0 ? s.average.toFixed(2) : '—'}
