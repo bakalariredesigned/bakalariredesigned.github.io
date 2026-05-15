@@ -1,12 +1,18 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Search, Bell, X, Check, CheckCheck, Trash2, GraduationCap, User, Calendar, Menu } from 'lucide-react';
+import { Search, Bell, X, Check, CheckCheck, Trash2, GraduationCap, User, Calendar, Menu, FileText, BookOpen, Clock, Mail, Megaphone } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { bakalariService } from '../services/bakalariService';
 
-interface SearchResult { type: string; title: string; sub: string; path: string; }
+interface SearchResult { 
+  type: 'subject' | 'teacher' | 'timetable' | 'page'; 
+  title: string; 
+  sub: string; 
+  path: string; 
+  teacher?: string;
+}
 
 interface NotifItem { id: string; type: string; text: string; path: string; read: boolean; }
 
@@ -44,17 +50,62 @@ export default function Layout() {
         bakalariService.getTimetable('actual'),
       ]);
       const items: SearchResult[] = [];
-      marksData?.Subjects?.forEach((s: any) => {
-        items.push({ type:'subject', title: s.Subject?.Name || '', sub: `${s.Subject?.Abbrev||''} · průměr ${parseFloat(s.AverageText||'0').toFixed(2)}`, path:'/marks' });
+      
+      // Build teacher lookup map
+      const teacherMap = new Map<string, string>();
+      tt?.Teachers?.forEach((t: any) => {
+        teacherMap.set(t.Id, t.Name || t.Abbrev || '');
       });
+      
+      // Předměty z klasifikace - s učiteli
+      marksData?.Subjects?.forEach((s: any) => {
+        const teacherName = s.Subject?.TeacherId ? teacherMap.get(s.Subject.TeacherId) : '';
+        items.push({ 
+          type: 'subject', 
+          title: s.Subject?.Name || '', 
+          sub: `Klasifikace · průměr ${parseFloat(s.AverageText||'0').toFixed(2)}`, 
+          path: '/marks',
+          teacher: teacherName || ''
+        });
+      });
+      
+      // Učitelé
       const seenT = new Set<string>();
       tt?.Teachers?.forEach((t: any) => {
-        if (!seenT.has(t.Id)) { seenT.add(t.Id); items.push({ type:'teacher', title: t.Name||t.Abbrev||'', sub:'Učitel · rozvrh', path:'/timetable' }); }
+        if (!seenT.has(t.Id)) { 
+          seenT.add(t.Id); 
+          items.push({ 
+            type: 'teacher', 
+            title: t.Name || t.Abbrev || '', 
+            sub: `Učitel · ${t.Abbrev || ''}`, 
+            path: '/timetable' 
+          }); 
+        }
       });
+      
+      // Předměty z rozvrhu
       const seenS = new Set<string>();
       tt?.Subjects?.forEach((s: any) => {
-        if (!seenS.has(s.Id)) { seenS.add(s.Id); items.push({ type:'timetable', title: s.Name||s.Abbrev||'', sub:`Rozvrh · ${s.Abbrev||''}`, path:'/timetable' }); }
+        if (!seenS.has(s.Id)) { 
+          seenS.add(s.Id); 
+          items.push({ 
+            type: 'timetable', 
+            title: s.Name || s.Abbrev || '', 
+            sub: `Rozvrh · ${s.Abbrev || ''}`, 
+            path: '/timetable' 
+          }); 
+        }
       });
+      
+      // Stránky aplikace
+      items.push({ type: 'page', title: 'Dashboard', sub: 'Přehled', path: '/' });
+      items.push({ type: 'page', title: 'Rozvrh hodin', sub: 'Týdenní rozvrh', path: '/timetable' });
+      items.push({ type: 'page', title: 'Klasifikace', sub: 'Známky a průměry', path: '/marks' });
+      items.push({ type: 'page', title: 'Domácí úkoly', sub: 'Úkoly', path: '/homework' });
+      items.push({ type: 'page', title: 'Absence', sub: 'Docházka', path: '/absence' });
+      items.push({ type: 'page', title: 'Zprávy', sub: 'Komens', path: '/messages' });
+      items.push({ type: 'page', title: 'Oznámení', sub: 'Nástěnka', path: '/notifications' });
+      
       setSearchItems(items);
       setSearchLoaded(true);
     } catch {}
@@ -184,16 +235,49 @@ export default function Layout() {
                   {searchResults.length === 0
                     ? <div className="px-4 py-3 text-xs text-[#71717a]">Žádné výsledky pro „{searchQ}"</div>
                     : searchResults.map((r, i) => {
-                        const Icon = r.type === 'teacher' ? User : r.type === 'subject' ? GraduationCap : Calendar;
+                        const getIcon = () => {
+                          switch(r.type) {
+                            case 'teacher': return User;
+                            case 'subject': return GraduationCap;
+                            case 'timetable': return Calendar;
+                            case 'page': 
+                              if (r.path === '/') return FileText;
+                              if (r.path === '/timetable') return Clock;
+                              if (r.path === '/marks') return GraduationCap;
+                              if (r.path === '/homework') return BookOpen;
+                              if (r.path === '/absence') return Calendar;
+                              if (r.path === '/messages') return Mail;
+                              if (r.path === '/notifications') return Megaphone;
+                              return FileText;
+                            default: return FileText;
+                          }
+                        };
+                        const Icon = getIcon();
+                        const getColors = () => {
+                          switch(r.type) {
+                            case 'teacher': return 'bg-indigo-500/15 text-indigo-400';
+                            case 'subject': return 'bg-emerald-500/15 text-emerald-400';
+                            case 'timetable': return 'bg-amber-500/15 text-amber-400';
+                            case 'page': return 'bg-[#27272a] text-[#a1a1aa]';
+                            default: return 'bg-[#27272a] text-[#a1a1aa]';
+                          }
+                        };
                         return (
                           <button key={i} onClick={() => { navigate(r.path); setShowSearch(false); setSearchQ(''); }}
                             className="w-full flex items-center gap-3 px-4 py-2.5 hover:bg-[#27272a] transition-colors text-left">
-                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${r.type==='teacher'?'bg-indigo-500/15 text-indigo-400':r.type==='subject'?'bg-emerald-500/15 text-emerald-400':'bg-amber-500/15 text-amber-400'}`}>
+                            <div className={`w-7 h-7 rounded-lg flex items-center justify-center shrink-0 ${getColors()}`}>
                               <Icon size={13} />
                             </div>
-                            <div className="min-w-0">
+                            <div className="min-w-0 flex-1">
                               <p className="text-xs font-medium text-[#fafafa] truncate">{r.title}</p>
-                              <p className="text-[10px] text-[#71717a] truncate">{r.sub}</p>
+                              <div className="flex items-center gap-2">
+                                <p className="text-[10px] text-[#71717a] truncate">{r.sub}</p>
+                                {r.teacher && (
+                                  <span className="text-[10px] text-indigo-400 truncate flex items-center gap-1">
+                                    <User size={9} /> {r.teacher}
+                                  </span>
+                                )}
+                              </div>
                             </div>
                           </button>
                         );
