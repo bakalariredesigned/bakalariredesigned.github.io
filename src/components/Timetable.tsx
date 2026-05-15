@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'motion/react';
-import { ChevronLeft, ChevronRight, Loader } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ChevronLeft, ChevronRight, Loader, X, User, Clock, MapPin, BookOpen, AlertCircle } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { bakalariService } from '../services/bakalariService';
 
@@ -42,6 +42,22 @@ interface Hour {
   EndTime: string;
 }
 
+interface SubjectAbsence {
+  name: string;
+  total: number;
+  lessons: number;
+  pct: number;
+}
+
+interface SelectedLesson {
+  lesson: Lesson;
+  hour: Hour;
+  subject: any;
+  teacher: any;
+  room: any;
+  absence: SubjectAbsence | null;
+}
+
 export default function Timetable() {
   const todayDow = new Date().getDay() - 1;
   const [weekOffset, setWeekOffset] = useState(0);
@@ -50,6 +66,8 @@ export default function Timetable() {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [hours, setHours] = useState<Hour[]>([]);
   const [loading, setLoading] = useState(true);
+  const [absenceData, setAbsenceData] = useState<SubjectAbsence[]>([]);
+  const [selectedLesson, setSelectedLesson] = useState<SelectedLesson | null>(null);
 
   const getWeekDate = (o: number) => {
     const d = new Date();
@@ -85,7 +103,12 @@ export default function Timetable() {
     setLessons([]);
     setHours([]);
     const date = weekOffset === 0 ? undefined : getWeekDate(weekOffset);
-    bakalariService.getTimetable('actual', date).then(data => {
+    
+    // Load timetable and absence data in parallel
+    Promise.all([
+      bakalariService.getTimetable('actual', date),
+      bakalariService.getAbsences()
+    ]).then(([data, absData]) => {
       if (data) {
         setTtData(data);
         setHours(data.Hours || []);
@@ -109,6 +132,16 @@ export default function Timetable() {
         });
         setLessons(out);
       }
+      
+      // Process absence data
+      if (absData?.AbsencesPerSubject) {
+        const rows: SubjectAbsence[] = absData.AbsencesPerSubject.map((s: any) => {
+          const total = (s.Base||0) + (s.Late||0) + (s.Soon||0) + (s.School||0) + (s.DistanceTeaching||0);
+          const pct = s.LessonsCount ? (total / s.LessonsCount) * 100 : 0;
+          return { name: s.SubjectName || '', total, lessons: s.LessonsCount || 0, pct };
+        });
+        setAbsenceData(rows);
+      }
     }).finally(() => setLoading(false));
   }, [weekOffset]);
 
@@ -116,6 +149,18 @@ export default function Timetable() {
   const tch = (id: string) => ttData?.Teachers?.find((t: any) => t.Id === id);
   const rm = (id: string) => ttData?.Rooms?.find((r: any) => r.Id === id);
   const cell = (di: number, hid: number) => lessons.find(l => l.dayIdx === di && l.hourId === hid);
+  
+  const getAbsenceForSubject = (subjectName: string): SubjectAbsence | null => {
+    return absenceData.find(a => a.name.toLowerCase() === subjectName.toLowerCase()) || null;
+  };
+  
+  const openLessonDetail = (l: Lesson, hr: Hour) => {
+    const s = sub(l.subjectId);
+    const t = tch(l.teacherId);
+    const r = rm(l.roomId);
+    const absence = s?.Name ? getAbsenceForSubject(s.Name) : null;
+    setSelectedLesson({ lesson: l, hour: hr, subject: s, teacher: t, room: r, absence });
+  };
 
   return (
     <div className="space-y-4">
@@ -204,7 +249,8 @@ export default function Timetable() {
                         const t = tch(l.teacherId);
                         const r = rm(l.roomId);
                         return (
-                          <td key={hr.Id} className={cn('p-1.5 border-b border-r border-[#27272a]', c.bg)}>
+                          <td key={hr.Id} className={cn('p-1.5 border-b border-r border-[#27272a] cursor-pointer hover:bg-[#27272a]/50 transition-colors', c.bg)}
+                              onClick={() => openLessonDetail(l, hr)}>
                             <div className="flex flex-col items-center gap-0.5 min-h-[52px] justify-center">
                               {/* Badge for changes */}
                               {l.changeKind !== 'normal' && (
@@ -279,8 +325,9 @@ export default function Timetable() {
                     initial={{ opacity: 0, y: 6 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: i * 0.04 }}
+                    onClick={() => openLessonDetail(l, hr)}
                     className={cn(
-                      'glass-card p-3 flex items-center gap-3',
+                      'glass-card p-3 flex items-center gap-3 cursor-pointer active:scale-[0.98] transition-transform',
                       c.bg,
                       l.changeKind === 'canceled' ? 'opacity-60' : ''
                     )}
@@ -336,6 +383,169 @@ export default function Timetable() {
           </div>
         </>
       )}
+
+      {/* ═══ LESSON DETAIL MODAL ═══ */}
+      <AnimatePresence>
+        {selectedLesson && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+            onClick={() => setSelectedLesson(null)}
+          >
+            <motion.div
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              transition={{ type: 'spring', duration: 0.3 }}
+              className="glass-card w-full max-w-sm overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="p-4 border-b border-[#27272a] flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-[#fafafa]">
+                    {selectedLesson.subject?.Name || selectedLesson.subject?.Abbrev || 'Hodina'}
+                  </h3>
+                  <p className="text-xs text-[#71717a]">
+                    {selectedLesson.hour.Caption || selectedLesson.hour.Id}. hodina
+                  </p>
+                </div>
+                <button
+                  onClick={() => setSelectedLesson(null)}
+                  className="p-2 hover:bg-[#27272a] rounded-lg transition-colors text-[#71717a] hover:text-[#fafafa]"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Modal Content */}
+              <div className="p-4 space-y-4">
+                {/* Teacher */}
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-indigo-500/15 flex items-center justify-center shrink-0">
+                    <User size={16} className="text-indigo-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[#52525b] font-medium">Vyučující</p>
+                    <p className="text-sm text-[#fafafa] font-medium">
+                      {selectedLesson.teacher?.Name || selectedLesson.teacher?.Abbrev || 'Neuvedeno'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Time */}
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-emerald-500/15 flex items-center justify-center shrink-0">
+                    <Clock size={16} className="text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[#52525b] font-medium">Čas</p>
+                    <p className="text-sm text-[#fafafa] font-medium">
+                      {selectedLesson.hour.BeginTime} - {selectedLesson.hour.EndTime}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Room */}
+                <div className="flex items-start gap-3">
+                  <div className="w-9 h-9 rounded-lg bg-amber-500/15 flex items-center justify-center shrink-0">
+                    <MapPin size={16} className="text-amber-400" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] uppercase tracking-wider text-[#52525b] font-medium">Učebna</p>
+                    <p className="text-sm text-[#fafafa] font-medium">
+                      {selectedLesson.room?.Name || selectedLesson.room?.Abbrev || 'Neuvedeno'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Theme if available */}
+                {selectedLesson.lesson.theme && (
+                  <div className="flex items-start gap-3">
+                    <div className="w-9 h-9 rounded-lg bg-purple-500/15 flex items-center justify-center shrink-0">
+                      <BookOpen size={16} className="text-purple-400" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] uppercase tracking-wider text-[#52525b] font-medium">Téma</p>
+                      <p className="text-sm text-[#fafafa]">{selectedLesson.lesson.theme}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Absence stats */}
+                {selectedLesson.absence && (
+                  <div className="flex items-start gap-3">
+                    <div className={cn(
+                      'w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
+                      selectedLesson.absence.pct >= 25 ? 'bg-rose-500/15' : 
+                      selectedLesson.absence.pct >= 15 ? 'bg-amber-500/15' : 'bg-[#27272a]'
+                    )}>
+                      <AlertCircle size={16} className={cn(
+                        selectedLesson.absence.pct >= 25 ? 'text-rose-400' : 
+                        selectedLesson.absence.pct >= 15 ? 'text-amber-400' : 'text-[#71717a]'
+                      )} />
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-[10px] uppercase tracking-wider text-[#52525b] font-medium">Absence v předmětu</p>
+                      <div className="flex items-center justify-between mt-1">
+                        <p className={cn(
+                          'text-sm font-medium',
+                          selectedLesson.absence.pct >= 25 ? 'text-rose-400' : 
+                          selectedLesson.absence.pct >= 15 ? 'text-amber-400' : 'text-[#fafafa]'
+                        )}>
+                          {selectedLesson.absence.total} / {selectedLesson.absence.lessons} hodin
+                        </p>
+                        <span className={cn(
+                          'text-xs font-bold px-2 py-0.5 rounded',
+                          selectedLesson.absence.pct >= 25 ? 'bg-rose-500/20 text-rose-400' : 
+                          selectedLesson.absence.pct >= 15 ? 'bg-amber-500/20 text-amber-400' : 'bg-[#27272a] text-[#a1a1aa]'
+                        )}>
+                          {selectedLesson.absence.pct.toFixed(0)}%
+                        </span>
+                      </div>
+                      {/* Progress bar */}
+                      <div className="h-1.5 bg-[#27272a] rounded-full overflow-hidden mt-2">
+                        <div 
+                          className={cn(
+                            'h-full rounded-full transition-all',
+                            selectedLesson.absence.pct >= 25 ? 'bg-rose-500' : 
+                            selectedLesson.absence.pct >= 15 ? 'bg-amber-500' : 'bg-indigo-500'
+                          )}
+                          style={{ width: `${Math.min(selectedLesson.absence.pct, 100)}%` }} 
+                        />
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Change info if applicable */}
+                {selectedLesson.lesson.changeKind !== 'normal' && (
+                  <div className={cn(
+                    'p-3 rounded-lg',
+                    selectedLesson.lesson.changeKind === 'canceled' ? 'bg-rose-500/10' :
+                    selectedLesson.lesson.changeKind === 'substitution' ? 'bg-amber-500/10' :
+                    'bg-purple-500/10'
+                  )}>
+                    <p className={cn(
+                      'text-xs font-bold',
+                      selectedLesson.lesson.changeKind === 'canceled' ? 'text-rose-400' :
+                      selectedLesson.lesson.changeKind === 'substitution' ? 'text-amber-400' :
+                      'text-purple-400'
+                    )}>
+                      {CHANGE[selectedLesson.lesson.changeKind].label}
+                    </p>
+                    {selectedLesson.lesson.changeDesc && (
+                      <p className="text-xs text-[#a1a1aa] mt-1">{selectedLesson.lesson.changeDesc}</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
