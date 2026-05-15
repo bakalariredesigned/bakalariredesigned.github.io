@@ -36,6 +36,13 @@ export default function Dashboard() {
   const [nextLesson,   setNextLesson]   = useState<any>(null);
   const [currentLesson, setCurrentLesson] = useState<any>(null);
 
+  // ── real-time clock (updates every 30 s) ──
+  const [currentTime, setCurrentTime] = useState(nowMins());
+  useEffect(() => {
+    const id = setInterval(() => setCurrentTime(nowMins()), 30_000);
+    return () => clearInterval(id);
+  }, []);
+
   // ── modals ──
   const [showOmluvenka, setShowOmluvenka] = useState(false);
   const [omluvenkaFrom,    setOmluvenkaFrom]    = useState(() => new Date().toISOString().slice(0,10));
@@ -232,22 +239,49 @@ export default function Dashboard() {
             {todayLessons.length === 0 && !loading
               ? <div className="p-6 text-center text-[#71717a] text-sm">Dnes žádné vyučování.</div>
               : todayLessons.map((l, i) => {
-                  const isCur = currentLesson?.HourId === l.HourId && currentLesson?.SubjectId === l.SubjectId;
+                  const begin = timeToMins(l.hour?.BeginTime || '0:00');
+                  const end   = timeToMins(l.hour?.EndTime   || '0:00');
+                  const isCur  = currentTime >= begin && currentTime < end;
+                  const isPast = currentTime >= end;
+                  // progress % during current lesson
+                  const progress = isCur ? Math.min(Math.round(((currentTime - begin) / (end - begin)) * 100), 100) : 0;
+
                   return (
-                    <div key={i} className={`flex items-center gap-4 px-4 py-3 border-b border-[#27272a] last:border-0 relative ${isCur ? 'bg-indigo-500/5' : 'hover:bg-[#18181b]/40'} transition-colors`}>
+                    <div key={i} className={[
+                      'flex items-center gap-4 px-4 py-3 border-b border-[#27272a] last:border-0 relative transition-colors',
+                      isCur  ? 'bg-indigo-500/[0.07]' : '',
+                      isPast ? 'opacity-45' : 'hover:bg-[#18181b]/40',
+                    ].join(' ')}>
+                      {/* current lesson left bar */}
                       {isCur && <div className="absolute left-0 top-0 bottom-0 w-0.5 bg-indigo-500" />}
+
+                      {/* time + status */}
                       <div className="w-28 shrink-0">
-                        <p className={`text-xs font-medium ${isCur ? 'text-indigo-400' : 'text-[#71717a]'}`}>
+                        <p className={`text-xs font-medium ${isCur ? 'text-indigo-400' : isPast ? 'text-[#52525b]' : 'text-[#71717a]'}`}>
                           {l.hour?.BeginTime} — {l.hour?.EndTime}
                         </p>
-                        <p className="text-[9px] uppercase tracking-widest text-[#71717a] mt-0.5">
-                          {isCur ? 'probíhá' : 'nadcházející'}
+                        <p className={`text-[9px] uppercase tracking-widest mt-0.5 font-semibold ${
+                          isCur ? 'text-indigo-400' : isPast ? 'text-[#52525b]' : 'text-[#71717a]'
+                        }`}>
+                          {isCur ? 'probíhá' : isPast ? 'proběhlo' : 'nadcházející'}
                         </p>
                       </div>
+
+                      {/* subject + teacher */}
                       <div className="flex-1 min-w-0">
-                        <h4 className="font-semibold text-sm text-[#fafafa] truncate">{l.subject?.Name || '—'}</h4>
+                        <h4 className={`font-semibold text-sm truncate ${isPast ? 'text-[#71717a]' : 'text-[#fafafa]'}`}>
+                          {l.subject?.Name || '—'}
+                        </h4>
                         <p className="text-[10px] text-[#a1a1aa]">{l.teacher?.Name || ''}</p>
+                        {/* progress bar for current lesson */}
+                        {isCur && (
+                          <div className="mt-1.5 h-1 bg-[#27272a] rounded-full overflow-hidden w-32">
+                            <div className="h-full bg-indigo-500 rounded-full transition-all duration-1000"
+                                 style={{ width: `${progress}%` }} />
+                          </div>
+                        )}
                       </div>
+
                       <span className="text-[10px] text-[#71717a] bg-[#27272a] px-2 py-0.5 rounded font-mono shrink-0">
                         {l.room?.Abbrev || '?'}
                       </span>
