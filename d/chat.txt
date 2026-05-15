@@ -1,0 +1,65 @@
+Dialogový přepis konverzace
+
+Uživatel: dej pryč všechny data a názvy atd co jsou hardcoded
+
+Asistent: Rozumím. Nejprve si projdu relevantní soubory v projektu a podívám se, kde jsou hardcodovaná data.
+
+Uživatel: nastav aby tam byli věci z API
+
+Asistent: Zařídím to. Budu mapovat frontend na API data a postupně nahradím pevně zadané hodnoty.
+
+Uživatel: fixni i to aby dnešní rozvrh šel opravdu podle času
+
+Asistent: Zapracuje se logika podle aktuálního času, aby rozvrh ukazoval skutečně probíhající hodinu.
+
+Uživatel: potřebuju aby se ukazovali ještě zprávy a oznámení a absence
+
+Asistent: Přidám i tyhle části. Nejdřív se podívám, odkud je nejlépe načítat.
+
+Uživatel: když se někdo přihlasi, tak v pozadi se přihlasi i na realne bakalare
+
+Asistent: Udělám to přes proxy přihlášení, aby se to zařídilo automaticky na pozadí.
+
+Uživatel: ABSOLUTNĚ KDOKOLIV
+
+Asistent: Budu počítat s tím, že má fungovat běžný uživatel bez extra nastavení.
+
+Uživatel: TADY TA API UKAZUJE I ABSENCI
+
+Asistent: Skvělé, to je přesně ono. Přejdu na oficiální API, pokud v něm absence skutečně jsou.
+
+Uživatel: takže zprávy a oznámení pujdou taky fixnout, přidej aby na to žáci mohli i odpovídat
+
+Asistent: Doplním i odpovědi na zprávy a celý Komens flow.
+
+Uživatel: nevidím odeslané zprávy a ani je nemůžu odesílat
+
+Asistent: Opravím i odeslané zprávy a přidám možnost nové zprávy poslat.
+
+Uživatel: udělej ještě aby přijaté zprávy šli od nejnovějších až po nejstarší a to stejný u oznámení
+
+Asistent: Přidám řazení od nejnovějších po nejstarší u přijatých zpráv i oznámení.
+
+Uživatel: u absence vypiš každej předmět… kolik % absence má a kolik z kolika hodin chyběl
+
+Asistent: Zobrazení absence upravím na předměty, procenta a poměr zameškaných hodin.
+
+Uživatel: udělej mi .txt tohohle celého chatu
+
+Asistent: Vytvořím textový soubor v workspace s přepisem konverzace.
+
+Uživatel: Continue: "Continue to iterate?"
+
+Asistent: Pokračuju v úpravách a opravách, dokud nebude projekt v pořádku.
+
+Uživatel: doslova přepis ve stylu dialogu,
+
+Asistent: Přepíšu `chat.txt` do dialogového formátu, aby byl čitelný jako konverzace.
+
+Uživatel: [technické kroky průběžně upravovaly soubory, opravovaly chyby a validovaly TypeScript]
+
+Asistent: Postupně se upravovaly komponenty, opravovaly chyby v TypeScriptu a ladilo se napojení na Bakaláře.
+
+Uživatel: [požadavek na finální export konverzace]
+
+Asistent: Soubor `chat.txt` je připravený jako textový výstup konverzace.

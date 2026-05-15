@@ -1,0 +1,57 @@
+src/components/Dashboard.tsx(176,10): error TS17008: JSX element 'section' has no corresponding closing tag.
+src/components/Dashboard.tsx(219,17): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
+src/components/Dashboard.tsx(222,9): error TS1005: ')' expected.
+src/components/Dashboard.tsx(225,18): error TS1005: ';' expected.
+src/components/Dashboard.tsx(227,16): error TS1005: ';' expected.w
+src/components/Dashboard.tsx(228,13): error TS2657: JSX expressions must have one parent element.
+src/components/Dashboard.tsx(263,11): error TS1128: Declaration or statement expected.
+src/components/Dashboard.tsx(264,9): error TS1109: Expression expected.
+src/components/Dashboard.tsx(265,7): error TS1109: Expression expected.
+src/components/Dashboard.tsx(266,5): error TS1109: Expression expected.
+src/components/Dashboard.tsx(267,3): error TS1109: Expression expected.
+src/components/Grades.tsx(96,5): error TS2657: JSX expressions must have one parent element.
+src/components/Grades.tsx(98,8): error TS17008: JSX element 'section' has no corresponding closing tag.
+src/components/Grades.tsx(101,24): error TS1127: Invalid character.
+src/components/Grades.tsx(101,50): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/Grades.tsx(101,98): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/Grades.tsx(113,7): error TS1005: ')' expected.
+src/components/Grades.tsx(116,9): error TS1003: Identifier expected.
+src/components/Grades.tsx(116,14): error TS1005: ',' expected.
+src/components/Grades.tsx(118,9): error TS1005: ',' expected.
+src/components/Grades.tsx(118,14): error TS1005: ',' expected.
+src/components/Grades.tsx(119,7): error TS1109: Expression expected.
+src/components/Grades.tsx(119,9): error TS1128: Declaration or statement expected.
+src/components/Grades.tsx(384,5): error TS1128: Declaration or statement expected.
+src/components/Grades.tsx(385,3): error TS1109: Expression expected.
+src/components/Grades.tsx(386,1): error TS1128: Declaration or statement expected.
+src/components/Timetable.tsx(117,5): error TS2657: JSX expressions must have one parent element.
+src/components/Timetable.tsx(119,8): error TS17008: JSX element 'section' has no corresponding closing tag.
+src/components/Timetable.tsx(122,24): error TS1127: Invalid character.
+src/components/Timetable.tsx(122,50): error TS1382: Unexpected token. Did you mean `{'>'}` or `&gt;`?
+src/components/Timetable.tsx(122,258): error TS17002: Expected corresponding JSX closing tag for 'div'.
+src/components/Timetable.tsx(135,7): error TS1005: ')' expected.
+src/components/Timetable.tsx(138,9): error TS1003: Identifier expected.
+src/components/Timetable.tsx(138,14): error TS1005: ',' expected.
+src/components/Timetable.tsx(140,9): error TS1005: ',' expected.
+src/components/Timetable.tsx(140,14): error TS1005: ',' expected.
+src/components/Timetable.tsx(141,7): error TS1109: Expression expected.
+src/components/Timetable.tsx(141,9): error TS1128: Declaration or statement expected.
+src/components/Timetable.tsx(272,5): error TS1128: Declaration or statement expected.
+src/components/Timetable.tsx(273,3): error TS1109: Expression expected.
+src/components/Timetable.tsx(274,1): error TS1128: Declaration or statement expected.
+src/lib/utils.ts(1,1): error TS1490: File appears to be binary.
+src/lib/utils.ts(12,11): error TS1005: ';' expected.
+src/lib/utils.ts(12,37): error TS1128: Declaration or statement expected.
+src/lib/utils.ts(26,21): error TS1005: ',' expected.
+src/lib/utils.ts(26,28): error TS1005: ',' expected.
+src/lib/utils.ts(26,36): error TS1005: ',' expected.
+src/lib/utils.ts(26,37): error TS1109: Expression expected.
+src/lib/utils.ts(26,39): error TS1128: Declaration or statement expected.
+src/lib/utils.ts(27,19): error TS1005: ',' expected.
+src/lib/utils.ts(27,26): error TS1005: ',' expected.
+src/lib/utils.ts(27,34): error TS1005: ',' expected.
+src/lib/utils.ts(27,35): error TS1109: Expression expected.
+src/lib/utils.ts(27,36): error TS1128: Declaration or statement expected.
+src/lib/utils.ts(27,37): error TS1128: Declaration or statement expected.
+src/lib/utils.ts(29,11): error TS1005: ';' expected.
+src/lib/utils.ts(29,22): error TS1128: Declaration or statement expected.
