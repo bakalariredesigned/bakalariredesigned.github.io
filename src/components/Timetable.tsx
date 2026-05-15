@@ -51,9 +51,10 @@ interface AbsenceSubject {
 }
 
 export default function Timetable() {
-  const todayDow = new Date().getDay() - 1;
-  const [weekOffset, setWeekOffset]     = useState(0);
-  const [activeDay, setActiveDay]       = useState(Math.min(Math.max(todayDow, 0), 4));
+  const todayDow = new Date().getDay() - 1; // 0=Mon … 4=Fri, -1=Sun, 5=Sat
+  const isWeekend = todayDow === 5 || todayDow === -1; // Sat or Sun
+  const [weekOffset, setWeekOffset]     = useState(isWeekend ? 1 : 0);
+  const [activeDay, setActiveDay]       = useState(isWeekend ? 0 : Math.min(Math.max(todayDow, 0), 4));
   const [ttData, setTtData]             = useState<any>(null);
   const [lessons, setLessons]           = useState<Lesson[]>([]);
   const [hours, setHours]               = useState<Hour[]>([]);
@@ -336,7 +337,11 @@ export default function Timetable() {
             <div className="px-3 flex items-center text-xs font-medium text-[#fafafa] min-w-[120px] justify-center">
               {weekLabel}
             </div>
-            <button onClick={() => setWeekOffset(o => o + 1)} className="p-1.5 hover:bg-[#27272a] rounded text-[#a1a1aa] hover:text-[#fafafa] transition-colors">
+            <button
+              onClick={() => setWeekOffset(o => Math.min(o + 1, 1))}
+              disabled={weekOffset >= 1}
+              className={cn("p-1.5 rounded transition-colors", weekOffset >= 1 ? "text-[#3f3f46] cursor-not-allowed" : "hover:bg-[#27272a] text-[#a1a1aa] hover:text-[#fafafa]")}
+            >
               <ChevronRight size={15} />
             </button>
           </div>
