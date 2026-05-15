@@ -15,6 +15,7 @@ import Homework from './components/Homework';
 import Attendance from './components/Attendance';
 import Messages from './components/Messages';
 import Notifications from './components/Notifications';
+import DownloadPage from './components/DownloadPage';
 
 // Placeholder for messages/notifications
 const Placeholder = ({ title }: { title: string }) => (
@@ -83,6 +84,7 @@ export default function App() {
             <Route path="notifications" element={<Notifications />} />
           </Route>
           
+          <Route path="/download" element={<DownloadPage />} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>

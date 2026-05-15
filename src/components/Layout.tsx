@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Search, Bell, X, Check, CheckCheck, Trash2, GraduationCap, User, Calendar } from 'lucide-react';
+import { Search, Bell, X, Check, CheckCheck, Trash2, GraduationCap, User, Calendar, Menu } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { bakalariService } from '../services/bakalariService';
@@ -26,6 +26,7 @@ export default function Layout() {
   const [dismissed,  setDismissed]  = useState<Set<string>>(getDismissed);
   const [readIds,    setReadIds]    = useState<Set<string>>(getRead);
   const [showNotifs, setShowNotifs] = useState(false);
+  const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const bellRef  = useRef<HTMLDivElement>(null);
 
   // ── Global search ──────────────────────────────────────────────
@@ -146,10 +147,17 @@ export default function Layout() {
   };
   return (
     <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden select-none">
-      <Sidebar />
+      <Sidebar mobileOpen={mobileSidebarOpen} onMobileClose={() => setMobileSidebarOpen(false)} />
       <main className="flex-1 flex flex-col min-w-0">
         {/* Header */}
-        <header className="h-14 border-b border-[#27272a] px-6 flex items-center justify-between relative z-40">
+        <header className="h-14 border-b border-[#27272a] px-4 md:px-6 flex items-center justify-between relative z-40">
+          {/* Hamburger (mobile only) */}
+          <button
+            onClick={() => setMobileSidebarOpen(true)}
+            className="md:hidden p-2 text-[#71717a] hover:text-[#fafafa] transition-colors mr-2 shrink-0"
+          >
+            <Menu size={20} />
+          </button>
           {/* Global Search */}
           <div ref={searchRef} className="flex-1 max-w-md relative">
             <div className={`flex items-center bg-[#18181b] rounded-full px-3 py-1.5 border transition-colors ${showSearch && searchQ ? 'border-indigo-500/50' : 'border-[#27272a]'}`}>
