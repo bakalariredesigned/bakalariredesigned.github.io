@@ -17,12 +17,12 @@ export default function Layout() {
         const absenceData = await bakalariService.getAbsences();
         
         if (absenceData?.Absences) {
-          const totalHours = absenceData.Absences.reduce((sum: number, a: any) => {
-            const hours = parseInt(a.Hours) || 0;
-            return sum + hours;
-          }, 0);
-          const percentage = Math.min(Math.round((totalHours / 200) * 100), 100);
-          setAbsencePercentage(`${percentage}%`);
+          const total = absenceData.Absences.reduce((s: number, a: any) =>
+            s + (a.Missed||0) + (a.Ok||0) + (a.Unsolved||0) + (a.Late||0) + (a.Soon||0) + (a.School||0), 0);
+          const lessons = (absenceData.AbsencesPerSubject || []).reduce((s: number, x: any) => s + (x.LessonsCount||0), 0);
+          if (total === 0) setAbsencePercentage('0 h');
+          else if (lessons > 0) setAbsencePercentage(`${Math.min(Math.round((total/lessons)*100),100)} %`);
+          else setAbsencePercentage(`${total} h`);
         }
       } catch (error) {
         console.error('Error loading footer data:', error);
