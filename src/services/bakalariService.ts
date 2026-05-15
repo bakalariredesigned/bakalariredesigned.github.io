@@ -1,4 +1,4 @@
-﻿import axios from 'axios';
+import axios from 'axios';
 import { API_BASE_PATH } from '../lib/constants';
 
 // When running as native Capacitor app, use the full Cloudflare URL

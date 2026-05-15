@@ -1,4 +1,4 @@
-﻿src/components/Dashboard.tsx(176,10): error TS17008: JSX element 'section' has no corresponding closing tag.
+src/components/Dashboard.tsx(176,10): error TS17008: JSX element 'section' has no corresponding closing tag.
 src/components/Dashboard.tsx(219,17): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
 src/components/Dashboard.tsx(222,9): error TS1005: ')' expected.
 src/components/Dashboard.tsx(225,18): error TS1005: ';' expected.
