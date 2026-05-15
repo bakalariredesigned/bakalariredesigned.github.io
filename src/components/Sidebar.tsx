@@ -37,9 +37,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
     )}>
       {/* Brand */}
       <div className="flex items-center gap-3 px-2 mb-8">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center font-bold text-white italic shrink-0">
-          B
-        </div>
+        <img src="/favicon.png" alt="logo" className="w-8 h-8 rounded-lg shrink-0 object-cover" />
         {!collapsed && (
           <motion.div
             initial={{ opacity: 0, x: -10 }}
