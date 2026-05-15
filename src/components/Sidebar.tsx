@@ -1,13 +1,8 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { 
-  LayoutDashboard, 
-  Calendar, 
-  GraduationCap, 
-  BookOpen, 
-  MessageSquare, 
-  Bell,
-  Clock
+  LayoutDashboard, Calendar, GraduationCap, BookOpen,
+  MessageSquare, Bell, Clock, LogOut
 } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { motion } from 'motion/react';
@@ -73,11 +68,8 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
       </nav>
 
       {/* User / Logout */}
-      <div className="mt-auto border-t border-[#27272a] pt-4">
-        <div className={cn(
-          "flex items-center gap-3 px-2",
-          collapsed && "justify-center"
-        )}>
+      <div className="mt-auto border-t border-[#27272a] pt-4 space-y-2">
+        <div className={cn('flex items-center gap-3 px-2', collapsed && 'justify-center')}>
           <div className="w-8 h-8 rounded-full bg-[#27272a] border border-[#3f3f46] flex items-center justify-center text-[10px] text-[#a1a1aa] shrink-0 uppercase">
             {user?.name?.[0] || 'S'}
           </div>
@@ -86,9 +78,7 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
               <span className="text-xs font-medium truncate">{user?.name || 'Student'}</span>
               <div className="flex items-center gap-1.5 min-w-0">
                 {user?.class && (
-                  <span className="text-[9px] font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded shrink-0">
-                    {user.class}
-                  </span>
+                  <span className="text-[9px] font-bold bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded shrink-0">{user.class}</span>
                 )}
                 {user?.className && (
                   <span className="text-[10px] text-[#71717a] truncate">{user.className}</span>
@@ -97,6 +87,12 @@ export default function Sidebar({ collapsed = false }: SidebarProps) {
             </div>
           )}
         </div>
+        <button onClick={logout}
+          className={cn('flex items-center gap-2 px-2 py-2 w-full rounded-lg text-[#71717a] hover:text-rose-400 hover:bg-rose-500/5 transition-colors text-xs',
+            collapsed && 'justify-center')}>
+          <LogOut size={15} className="shrink-0" />
+          {!collapsed && <span>Odhlásit se</span>}
+        </button>
       </div>
     </aside>
   );

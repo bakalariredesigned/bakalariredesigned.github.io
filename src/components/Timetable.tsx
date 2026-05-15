@@ -41,19 +41,33 @@ const detectChangeKind = (change: any): ChangeKind => {
 };
 
 export default function Timetable() {
-  const todayDow = new Date().getDay() - 1; // 0=Mon … 4=Fri
-  const [activeDay, setActiveDay] = useState(Math.min(Math.max(todayDow, 0), 4));
+  const [weekOffset, setWeekOffset] = useState(0);
+  const [activeDay, setActiveDay] = useState(Math.min(Math.max(new Date().getDay() - 1, 0), 4));
   const [timetableData, setTimetableData] = useState<any>(null);
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [loading, setLoading] = useState(true);
 
+  const todayDow = new Date().getDay() - 1;
+
+  const getWeekDate = (offset: number) => {
+    const d = new Date();
+    const dow = d.getDay() || 7;
+    d.setDate(d.getDate() - dow + 1 + offset * 7); // Monday of target week
+    return d.toISOString().slice(0, 10);
+  };
+
+  const weekLabel = weekOffset === 0 ? 'Tento týden' : weekOffset === 1 ? 'Příští týden' : weekOffset === -1 ? 'Minulý týden' : `Týden ${weekOffset > 0 ? '+' : ''}${weekOffset}`;
+
   useEffect(() => {
-    bakalariService.getTimetable('actual')
+    setLoading(true);
+    setLessons([]);
+    const date = weekOffset === 0 ? undefined : getWeekDate(weekOffset);
+    bakalariService.getTimetable('actual', date)
       .then(data => {
         if (data) { setTimetableData(data); setLessons(parseTimetable(data)); }
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [weekOffset]);
 
   const parseTimetable = (data: any): Lesson[] => {
     if (!data?.Days || !data?.Hours) return [];
@@ -151,13 +165,13 @@ export default function Timetable() {
           <p className="text-[#a1a1aa] text-sm">{getWeekRange()}</p>
         </div>
         <div className="flex bg-[#18181b] border border-[#27272a] rounded-lg p-1 self-start">
-          <button className="p-1.5 hover:bg-[#27272a] rounded transition-colors text-[#a1a1aa] hover:text-[#fafafa]">
+          <button onClick={() => setWeekOffset(o => o - 1)} className="p-1.5 hover:bg-[#27272a] rounded transition-colors text-[#a1a1aa] hover:text-[#fafafa]">
             <ChevronLeft size={16} />
           </button>
-          <div className="px-3 flex items-center font-medium text-xs text-[#fafafa] min-w-[100px] justify-center">
-            Tento týden
+          <div className="px-3 flex items-center font-medium text-xs text-[#fafafa] min-w-[120px] justify-center">
+            {weekLabel}
           </div>
-          <button className="p-1.5 hover:bg-[#27272a] rounded transition-colors text-[#a1a1aa] hover:text-[#fafafa]">
+          <button onClick={() => setWeekOffset(o => o + 1)} className="p-1.5 hover:bg-[#27272a] rounded transition-colors text-[#a1a1aa] hover:text-[#fafafa]">
             <ChevronRight size={16} />
           </button>
         </div>

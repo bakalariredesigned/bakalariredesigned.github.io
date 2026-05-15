@@ -69,9 +69,12 @@ export const bakalariService = {
     }
   },
 
-  async getTimetable(type: string = 'actual') {
+  async getTimetable(type: string = 'actual', date?: string) {
     try {
-      const response = await proxyAxios.get(`${API_BASE_PATH}/timetable/${type}`);
+      const url = date
+        ? `${API_BASE_PATH}/timetable/${type}?date=${date}`
+        : `${API_BASE_PATH}/timetable/${type}`;
+      const response = await proxyAxios.get(url);
       return response.data;
     } catch (error) {
       console.error('Error fetching timetable:', error);
