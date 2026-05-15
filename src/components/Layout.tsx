@@ -256,6 +256,8 @@ export default function Layout() {
           </div>
           <div className="flex items-center gap-4 text-[9px] text-[#71717a] uppercase tracking-tighter">
             <span>Absence: {absencePercentage}</span>
+            <div className="w-px h-3 bg-[#27272a]"></div>
+            <span className="normal-case tracking-normal">© Made by Daniel <span className="text-[#52525b]">"Dndskid"</span> Horáček</span>
           </div>
         </footer>
       </main>
