@@ -1,8 +1,14 @@
 ﻿import axios from 'axios';
 import { API_BASE_PATH } from '../lib/constants';
 
+// When running as native Capacitor app, use the full Cloudflare URL
+const isNative = !!(window as any).Capacitor?.isNative;
+const PROXY_BASE = isNative
+  ? 'https://bakalari-redesign.pages.dev/api-proxy'
+  : '/api-proxy';
+
 const proxyAxios = axios.create({
-  baseURL: '/api-proxy',
+  baseURL: PROXY_BASE,
 });
 
 // Interceptor to add auth token + school URL
