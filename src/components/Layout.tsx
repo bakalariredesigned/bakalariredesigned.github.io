@@ -1,28 +1,61 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
-import { Search, Bell, X } from 'lucide-react';
+import { Search, Bell, X, Check, CheckCheck, Trash2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { bakalariService } from '../services/bakalariService';
+
+interface NotifItem { id: string; type: string; text: string; path: string; read: boolean; }
+
+const STORAGE_KEY = 'bakNotifDismissed';
+const getDismissed = (): Set<string> => new Set(JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'));
+const saveDismissed = (s: Set<string>) => localStorage.setItem(STORAGE_KEY, JSON.stringify([...s]));
+
+const READ_KEY = 'bakNotifRead';
+const getRead = (): Set<string> => new Set(JSON.parse(localStorage.getItem(READ_KEY) || '[]'));
+const saveRead = (s: Set<string>) => localStorage.setItem(READ_KEY, JSON.stringify([...s]));
 
 export default function Layout() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [absencePercentage, setAbsencePercentage] = useState<string>('…');
-  const [notifCount, setNotifCount] = useState(0);
-  const [notifItems, setNotifItems] = useState<{type:string;text:string;path:string}[]>([]);
+  const [notifItems, setNotifItems] = useState<NotifItem[]>([]);
+  const [dismissed,  setDismissed]  = useState<Set<string>>(getDismissed);
+  const [readIds,    setReadIds]    = useState<Set<string>>(getRead);
   const [showNotifs, setShowNotifs] = useState(false);
   const bellRef = useRef<HTMLDivElement>(null);
 
-  // Close notif dropdown on outside click
+  const visible    = notifItems.filter(n => !dismissed.has(n.id));
+  const unreadCount = visible.filter(n => !readIds.has(n.id)).length;
+
+  // Close on outside click
   useEffect(() => {
-    const handler = (e: MouseEvent) => {
+    const h = (e: MouseEvent) => {
       if (bellRef.current && !bellRef.current.contains(e.target as Node)) setShowNotifs(false);
     };
-    document.addEventListener('mousedown', handler);
-    return () => document.removeEventListener('mousedown', handler);
+    document.addEventListener('mousedown', h);
+    return () => document.removeEventListener('mousedown', h);
   }, []);
+
+  const markRead = (id: string) => {
+    const next = new Set(readIds); next.add(id);
+    setReadIds(next); saveRead(next);
+  };
+  const dismiss = (id: string) => {
+    const next = new Set(dismissed); next.add(id);
+    setDismissed(next); saveDismissed(next);
+  };
+  const markAllRead = () => {
+    const next = new Set(readIds);
+    visible.forEach(n => next.add(n.id));
+    setReadIds(next); saveRead(next);
+  };
+  const dismissAll = () => {
+    const next = new Set(dismissed);
+    visible.forEach(n => next.add(n.id));
+    setDismissed(next); saveDismissed(next);
+  };
   
   useEffect(() => {
     const loadFooterData = async () => {
@@ -51,19 +84,20 @@ export default function Layout() {
           bakalariService.getMarks(),
           bakalariService.getReceivedMessages(),
         ]);
-        const items: {type:string;text:string;path:string}[] = [];
-        // New marks
+        const items: NotifItem[] = [];
         marksData?.Subjects?.forEach((s: any) => {
           s.Marks?.forEach((m: any) => {
-            if (m.IsNew) items.push({ type:'mark', text:`Nová známka z ${s.Subject?.Abbrev}: ${m.MarkText} – ${m.Caption||''}`, path:'/marks' });
+            if (m.IsNew) {
+              const id = `mark-${s.Subject?.Id}-${m.MarkDate||m.Date}`;
+              items.push({ id, type:'mark', text:`Nová známka z ${s.Subject?.Abbrev}: ${m.MarkText}${m.Caption?' – '+m.Caption:''}`, path:'/marks', read: false });
+            }
           });
         });
-        // Unread messages
         msgs?.filter((m: any) => !m.IsRead).slice(0, 5).forEach((m: any) => {
-          items.push({ type:'msg', text:`Zpráva: ${m.Title || '(bez předmětu)'}`, path:'/messages' });
+          const id = `msg-${m.Id}`;
+          items.push({ id, type:'msg', text:`Zpráva: ${m.Title || '(bez předmětu)'}`, path:'/messages', read: false });
         });
         setNotifItems(items);
-        setNotifCount(items.length);
       } catch {}
     };
     checkNotifs();
@@ -96,34 +130,94 @@ export default function Layout() {
               <button onClick={() => setShowNotifs(v => !v)}
                 className="relative p-1 hover:text-[#fafafa] text-[#a1a1aa] transition-colors">
                 <Bell size={20} />
-                {notifCount > 0 && (
+                {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 w-4 h-4 bg-indigo-500 rounded-full text-[9px] font-bold text-white flex items-center justify-center">
-                    {notifCount > 9 ? '9+' : notifCount}
+                    {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
               </button>
               <AnimatePresence>
                 {showNotifs && (
                   <motion.div initial={{opacity:0,y:-8,scale:0.95}} animate={{opacity:1,y:0,scale:1}} exit={{opacity:0,y:-8,scale:0.95}}
-                    className="absolute right-0 top-8 w-80 bg-[#18181b] border border-[#27272a] rounded-xl shadow-xl z-50 overflow-hidden">
+                    className="absolute right-0 top-8 w-88 bg-[#18181b] border border-[#27272a] rounded-xl shadow-xl z-50 overflow-hidden"
+                    style={{ width: '22rem' }}>
+                    {/* Header */}
                     <div className="flex items-center justify-between px-4 py-3 border-b border-[#27272a]">
-                      <h3 className="text-xs font-semibold text-[#fafafa]">Oznámení</h3>
-                      <button onClick={() => setShowNotifs(false)} className="text-[#71717a] hover:text-[#fafafa]"><X size={14} /></button>
-                    </div>
-                    {notifItems.length === 0
-                      ? <div className="p-6 text-center text-[#71717a] text-xs">Žádná nová oznámení</div>
-                      : <div className="max-h-64 overflow-y-auto divide-y divide-[#27272a]">
-                          {notifItems.map((n, i) => (
-                            <button key={i} onClick={() => { navigate(n.path); setShowNotifs(false); }}
-                              className="w-full text-left px-4 py-3 hover:bg-[#27272a] transition-colors">
-                              <div className="flex items-start gap-2">
-                                <span className={`text-[9px] font-bold uppercase px-1.5 py-0.5 rounded shrink-0 mt-0.5 ${n.type==='mark'?'bg-emerald-500/20 text-emerald-400':'bg-indigo-500/20 text-indigo-400'}`}>
-                                  {n.type==='mark'?'Známka':'Zpráva'}
-                                </span>
-                                <p className="text-xs text-[#fafafa] line-clamp-2">{n.text}</p>
-                              </div>
+                      <div className="flex items-center gap-2">
+                        <h3 className="text-xs font-semibold text-[#fafafa]">Oznámení</h3>
+                        {unreadCount > 0 && (
+                          <span className="text-[9px] bg-indigo-500/20 text-indigo-400 px-1.5 py-0.5 rounded-full font-bold">
+                            {unreadCount} nových
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {visible.length > 0 && (
+                          <>
+                            <button onClick={markAllRead} title="Označit vše jako přečtené"
+                              className="p-1.5 text-[#71717a] hover:text-emerald-400 transition-colors rounded">
+                              <CheckCheck size={14} />
                             </button>
-                          ))}
+                            <button onClick={dismissAll} title="Smazat vše"
+                              className="p-1.5 text-[#71717a] hover:text-rose-400 transition-colors rounded">
+                              <Trash2 size={14} />
+                            </button>
+                          </>
+                        )}
+                        <button onClick={() => setShowNotifs(false)} className="p-1.5 text-[#71717a] hover:text-[#fafafa] transition-colors rounded">
+                          <X size={14} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Items */}
+                    {visible.length === 0
+                      ? <div className="p-6 text-center text-[#71717a] text-xs">Žádná oznámení</div>
+                      : <div className="max-h-72 overflow-y-auto divide-y divide-[#27272a]">
+                          <AnimatePresence initial={false}>
+                            {visible.map(n => {
+                              const isRead = readIds.has(n.id);
+                              return (
+                                <motion.div key={n.id}
+                                  initial={{opacity:1,height:'auto'}} exit={{opacity:0,height:0,overflow:'hidden'}}
+                                  transition={{duration:0.2}}
+                                  className={`flex items-start gap-2 px-4 py-3 group transition-colors ${isRead ? 'opacity-60' : 'bg-indigo-500/[0.03]'} hover:bg-[#27272a]/60`}>
+                                  {/* unread dot */}
+                                  <div className="mt-1.5 shrink-0">
+                                    {!isRead
+                                      ? <div className="w-1.5 h-1.5 rounded-full bg-indigo-400" />
+                                      : <div className="w-1.5 h-1.5" />
+                                    }
+                                  </div>
+
+                                  {/* content – clickable */}
+                                  <button className="flex-1 text-left min-w-0"
+                                    onClick={() => { markRead(n.id); navigate(n.path); setShowNotifs(false); }}>
+                                    <div className="flex items-center gap-1.5 mb-0.5">
+                                      <span className={`text-[8px] font-bold uppercase px-1.5 py-0.5 rounded ${n.type==='mark'?'bg-emerald-500/20 text-emerald-400':'bg-indigo-500/20 text-indigo-400'}`}>
+                                        {n.type==='mark'?'Známka':'Zpráva'}
+                                      </span>
+                                    </div>
+                                    <p className={`text-xs line-clamp-2 ${isRead ? 'text-[#71717a]' : 'text-[#fafafa]'}`}>{n.text}</p>
+                                  </button>
+
+                                  {/* action buttons */}
+                                  <div className="flex flex-col gap-1 shrink-0 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {!isRead && (
+                                      <button onClick={() => markRead(n.id)} title="Označit jako přečtené"
+                                        className="p-1 text-[#71717a] hover:text-emerald-400 transition-colors">
+                                        <Check size={12} />
+                                      </button>
+                                    )}
+                                    <button onClick={() => dismiss(n.id)} title="Smazat"
+                                      className="p-1 text-[#71717a] hover:text-rose-400 transition-colors">
+                                      <X size={12} />
+                                    </button>
+                                  </div>
+                                </motion.div>
+                              );
+                            })}
+                          </AnimatePresence>
                         </div>
                     }
                   </motion.div>
