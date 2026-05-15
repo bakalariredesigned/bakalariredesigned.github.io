@@ -2,7 +2,7 @@
 src/components/Dashboard.tsx(219,17): error TS1381: Unexpected token. Did you mean `{'}'}` or `&rbrace;`?
 src/components/Dashboard.tsx(222,9): error TS1005: ')' expected.
 src/components/Dashboard.tsx(225,18): error TS1005: ';' expected.
-src/components/Dashboard.tsx(227,16): error TS1005: ';' expected.
+src/components/Dashboard.tsx(227,16): error TS1005: ';' expected.w
 src/components/Dashboard.tsx(228,13): error TS2657: JSX expressions must have one parent element.
 src/components/Dashboard.tsx(263,11): error TS1128: Declaration or statement expected.
 src/components/Dashboard.tsx(264,9): error TS1109: Expression expected.
