@@ -1,11 +1,11 @@
 /**
  * Cloudflare Pages Function – CORS proxy pro Bakaláři API
  *
- * Přeposílá všechny požadavky z /api-proxy/* na https://mot-spsd.bakalari.cz/*
- * a přidává User-Agent spoofing (tváří se jako Android Bakaláři app).
+ * Cílová URL školy se čte z hlavičky X-Bakalari-Host (posílá klient).
+ * Fallback na mot-spsd.bakalari.cz pokud hlavička chybí.
  */
 
-const TARGET_HOST = 'https://mot-spsd.bakalari.cz';
+const FALLBACK_HOST = 'https://mot-spsd.bakalari.cz';
 
 // Hlavičky, které nechceme přeposílat na cílový server
 const BLOCKED_REQUEST_HEADERS = new Set([
@@ -46,7 +46,8 @@ export async function onRequest(context: { request: Request }): Promise<Response
     });
   }
 
-  // Odeber prefix /api-proxy a přepiš URL na cílový server
+  // Čti URL školy z hlavičky X-Bakalari-Host (posílá klient z localStorage)
+  const TARGET_HOST = request.headers.get('X-Bakalari-Host') || FALLBACK_HOST;
   const targetPath = url.pathname.replace(/^\/api-proxy/, '') || '/';
   const targetUrl = `${TARGET_HOST}${targetPath}${url.search}`;
 

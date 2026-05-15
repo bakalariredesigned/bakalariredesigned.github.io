@@ -5,11 +5,15 @@ const proxyAxios = axios.create({
   baseURL: '/api-proxy',
 });
 
-// Interceptor to add auth token
+// Interceptor to add auth token + school URL
 proxyAxios.interceptors.request.use((config) => {
-  const token = localStorage.getItem('bakalari_token');
+  const token     = localStorage.getItem('bakalari_token');
+  const schoolUrl = localStorage.getItem('bakalari_school_url');
   if (token && config.headers) {
     config.headers.Authorization = `Bearer ${token}`;
+  }
+  if (schoolUrl && config.headers) {
+    config.headers['X-Bakalari-Host'] = schoolUrl;
   }
   return config;
 });
