@@ -50,9 +50,27 @@ interface AbsenceSubject {
   pct: number;
 }
 
+// Returns local YYYY-MM-DD without UTC conversion issues
+const localDateStr = (d: Date) => {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+};
+
+// Monday of the week that is `o` weeks from today (local time)
+const getMondayOfWeek = (o: number) => {
+  const now = new Date();
+  const dow = now.getDay() || 7; // 1=Mon…7=Sun
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - dow + 1 + o * 7);
+  return localDateStr(monday);
+};
+
 export default function Timetable() {
-  const todayDow = new Date().getDay() - 1; // 0=Mon … 4=Fri, -1=Sun, 5=Sat
-  const isWeekend = todayDow === 5 || todayDow === -1; // Sat or Sun
+  const now = new Date();
+  const localDow = now.getDay(); // 0=Sun, 1=Mon…6=Sat
+  const isWeekend = localDow === 0 || localDow === 6; // Sun or Sat
+  const todayDow = localDow === 0 ? 6 : localDow - 1; // 0=Mon…4=Fri (for highlighting)
   const [weekOffset, setWeekOffset]     = useState(isWeekend ? 1 : 0);
   const [activeDay, setActiveDay]       = useState(isWeekend ? 0 : Math.min(Math.max(todayDow, 0), 4));
   const [ttData, setTtData]             = useState<any>(null);
@@ -61,13 +79,6 @@ export default function Timetable() {
   const [loading, setLoading]           = useState(true);
   const [selectedLesson, setSelectedLesson] = useState<Lesson | null>(null);
   const [absenceMap, setAbsenceMap]     = useState<Record<string, AbsenceSubject>>({});
-
-  const getWeekDate = (o: number) => {
-    const d = new Date();
-    const dow = d.getDay() || 7;
-    d.setDate(d.getDate() - dow + 1 + o * 7);
-    return d.toISOString().slice(0, 10);
-  };
   const weekLabel =
     weekOffset === 0 ? "Tento týden" :
     weekOffset === 1 ? "Příští týden" :
@@ -108,7 +119,7 @@ export default function Timetable() {
     setLessons([]);
     setHours([]);
     setSelectedLesson(null);
-    const date = weekOffset === 0 ? undefined : getWeekDate(weekOffset);
+    const date = weekOffset === 0 ? undefined : getMondayOfWeek(weekOffset);
     bakalariService.getTimetable("actual", date).then(data => {
       if (data) {
         setTtData(data);
