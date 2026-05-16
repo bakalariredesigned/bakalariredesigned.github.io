@@ -214,6 +214,15 @@ async function startServer() {
   );
 
   // Scraping endpoints for real-time data
+  app.get('/api/version', (_req, res) => {
+    res.json({
+      versionCode: 2,
+      versionName: '1.1.0',
+      notes: 'Vylepšené mobilní rozhraní, tmavý theme pro Android, lepší viditelnost',
+      required: false,
+    });
+  });
+
   app.get('/api/scrape/messages', async (req, res) => {
     const token = req.headers.authorization?.replace('Bearer ', '');
     if (!token) {

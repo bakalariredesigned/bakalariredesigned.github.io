@@ -5,6 +5,7 @@ import { Search, Bell, X, Check, CheckCheck, Trash2, GraduationCap, User, Calend
 import { motion, AnimatePresence } from 'motion/react';
 import { useAuth } from '../context/AuthContext';
 import { bakalariService } from '../services/bakalariService';
+import UpdateBanner from './UpdateBanner';
 
 interface SearchResult { type: string; title: string; sub: string; path: string; }
 interface NotifItem { id: string; type: string; text: string; path: string; read: boolean; }
@@ -196,6 +197,7 @@ export default function Layout() {
 
   return (
     <div className="flex bg-[#09090b] text-[#fafafa] font-sans overflow-hidden select-none" style={{ height: '100dvh' }}>
+      <UpdateBanner />
       <Sidebar />
 
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
@@ -346,7 +348,7 @@ export default function Layout() {
         <footer className="hidden md:flex h-8 border-t border-[#27272a] px-4 items-center justify-between bg-[#09090b]">
           <div className="flex items-center gap-4 text-[9px] text-[#71717a]">
             <span className="flex items-center gap-1"><span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> API Připojeno</span>
-            <span>Systém v24.10.1</span>
+            <span>Systém v1.1.0</span>
           </div>
           <div className="flex items-center gap-4 text-[9px] text-[#71717a] uppercase tracking-tighter">
             <span>Absence: {absencePercentage}</span>
