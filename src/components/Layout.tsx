@@ -195,10 +195,10 @@ export default function Layout() {
   );
 
   return (
-    <div className="flex h-screen bg-[#09090b] text-[#fafafa] font-sans overflow-hidden select-none">
+    <div className="flex bg-[#09090b] text-[#fafafa] font-sans overflow-hidden select-none" style={{ height: '100dvh' }}>
       <Sidebar />
 
-      <main className="flex-1 flex flex-col min-w-0">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* ── Desktop header ── */}
         <header className="hidden md:flex h-14 border-b border-[#27272a] px-6 items-center justify-between relative z-40">
@@ -334,10 +334,12 @@ export default function Layout() {
         </header>
 
         {/* Content */}
-        <div className="flex-1 overflow-y-auto p-4 md:p-6 pb-20 md:pb-6 custom-scrollbar">
-          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <Outlet />
-          </motion.div>
+        <div className="flex-1 overflow-y-auto p-4 md:p-6 scroll-area" style={{ paddingBottom: 'calc(5rem + env(safe-area-inset-bottom, 0px))' }}>
+          <div className="md:[padding-bottom:1.5rem]">
+            <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <Outlet />
+            </motion.div>
+          </div>
         </div>
 
         {/* Desktop status bar */}
@@ -354,27 +356,35 @@ export default function Layout() {
         </footer>
 
         {/* ── Mobile bottom nav ── */}
-        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/95 backdrop-blur-md border-t border-[#27272a] pb-safe">
-          <div className="flex items-stretch h-16">
+        <nav className="md:hidden fixed bottom-0 left-0 right-0 z-40 bg-[#09090b]/98 backdrop-blur-xl border-t border-[#27272a]"
+          style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="flex items-stretch h-[62px]">
             {BOTTOM_NAV.map(item => {
               const isActive = item.path === '/'
                 ? location.pathname === '/'
                 : location.pathname.startsWith(item.path);
               return (
                 <button key={item.path} onClick={() => navigate(item.path)}
-                  className="flex-1 flex flex-col items-center justify-center gap-1 transition-colors active:scale-95 relative"
+                  className="flex-1 flex flex-col items-center justify-center gap-1.5 relative"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
-                  <motion.div animate={{ scale: isActive ? 1.1 : 1 }} transition={{ type: 'spring', stiffness: 400, damping: 20 }}>
-                    <item.icon size={22} className={isActive ? 'text-indigo-400' : 'text-[#52525b]'} strokeWidth={isActive ? 2.2 : 1.8} />
-                  </motion.div>
-                  <span className={`text-[9px] font-medium leading-none ${isActive ? 'text-indigo-400' : 'text-[#52525b]'}`}>
-                    {item.label}
-                  </span>
                   {isActive && (
                     <motion.div layoutId="bottomNavIndicator"
-                      className="absolute top-0 left-1/2 -translate-x-1/2 w-8 h-0.5 rounded-full bg-indigo-400"
+                      className="absolute top-0 left-1/2 -translate-x-1/2 w-10 h-[2px] rounded-full bg-indigo-400"
                     />
                   )}
+                  <motion.div
+                    animate={{ scale: isActive ? 1.12 : 1, y: isActive ? -1 : 0 }}
+                    transition={{ type: 'spring', stiffness: 500, damping: 25 }}>
+                    <item.icon
+                      size={24}
+                      className={isActive ? 'text-indigo-400' : 'text-[#52525b]'}
+                      strokeWidth={isActive ? 2.2 : 1.8}
+                    />
+                  </motion.div>
+                  <span className={`text-[10px] font-medium leading-none ${isActive ? 'text-indigo-400' : 'text-[#52525b]'}`}>
+                    {item.label}
+                  </span>
                 </button>
               );
             })}
