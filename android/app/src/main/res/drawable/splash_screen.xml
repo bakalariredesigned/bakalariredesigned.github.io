@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Dark splash screen shown while app loads -->
+<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Dark background -->
+    <item>
+        <color android:color="#09090B" />
+    </item>
+
+    <!-- Centered indigo circle with graduation cap -->
+    <item
+        android:gravity="center"
+        android:width="120dp"
+        android:height="120dp">
+        <shape android:shape="oval">
+            <solid android:color="#1E1F3A" />
+            <stroke android:width="1.5dp" android:color="#6366F1" />
+        </shape>
+    </item>
+
+    <!-- Icon inside the circle -->
+    <item
+        android:gravity="center"
+        android:width="56dp"
+        android:height="56dp">
+        <vector
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:width="56dp"
+            android:height="56dp"
+            android:viewportWidth="24"
+            android:viewportHeight="24">
+            <!-- Graduation cap -->
+            <path
+                android:fillColor="#6366F1"
+                android:pathData="M12,3L1,9l11,6l9,-4.91V17h2V9M5,13.18v4L12,21l7,-3.82v-4L12,17L5,13.18z" />
+        </vector>
+    </item>
+
+</layer-list>
