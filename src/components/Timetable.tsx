@@ -460,31 +460,34 @@ export default function Timetable() {
                     transition={{ delay: i * 0.04 }}
                     onClick={() => setSelectedLesson(l)}
                     className={cn(
-                      "glass-card p-3 flex items-center gap-3 border-l-[3px] cursor-pointer active:scale-[0.98] transition-transform",
-                      c.bg, c.border,
+                      "glass-card px-4 py-4 flex items-center gap-4 border-l-4 cursor-pointer active:scale-[0.98] transition-transform",
+                      c.bg,
                       l.changeKind === "canceled"     ? "border-l-rose-500 opacity-75" :
                       l.changeKind === "substitution" ? "border-l-amber-400" :
                       l.changeKind === "other"        ? "border-l-purple-400" :
-                                                        "border-l-indigo-500/50",
+                                                        "border-l-indigo-500",
                     )}
                   >
-                    <div className="w-20 shrink-0 text-right">
-                      <p className="text-xs font-semibold text-[#fafafa]">{hr.BeginTime}</p>
-                      <p className="text-[9px] text-[#71717a]">– {hr.EndTime}</p>
+                    {/* Time block */}
+                    <div className="w-[68px] shrink-0">
+                      <p className="text-sm font-bold text-[#fafafa]">{hr.BeginTime}</p>
+                      <p className="text-xs text-[#71717a]">{hr.EndTime}</p>
                     </div>
+                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       {l.changeKind !== "normal" && (
-                        <span className={cn("text-[9px] font-bold uppercase px-1.5 py-0.5 rounded inline-block mb-1", c.badge)}>
+                        <span className={cn("text-[10px] font-bold uppercase px-2 py-0.5 rounded-full inline-block mb-1.5", c.badge)}>
                           {c.label}
                         </span>
                       )}
-                      <p className={cn("text-sm font-semibold truncate", l.changeKind === "canceled" ? "line-through text-[#71717a]" : "text-[#fafafa]")}>
+                      <p className={cn("text-base font-semibold leading-tight truncate", l.changeKind === "canceled" ? "line-through text-[#71717a]" : "text-[#fafafa]")}>
                         {s?.Name || s?.Abbrev || "—"}
                       </p>
-                      <p className="text-[11px] text-[#a1a1aa]">{t?.Name || t?.Abbrev || ""}</p>
-                      {l.changeDesc && <p className="text-[10px] text-[#71717a] italic">{l.changeDesc}</p>}
+                      <p className="text-sm text-[#a1a1aa] mt-0.5">{t?.Name || t?.Abbrev || ""}</p>
+                      {l.changeDesc && <p className="text-xs text-[#71717a] italic mt-0.5">{l.changeDesc}</p>}
                     </div>
-                    <span className="text-[10px] font-mono bg-[#27272a] text-[#a1a1aa] px-2 py-0.5 rounded shrink-0">
+                    {/* Room */}
+                    <span className="text-sm font-mono font-medium bg-[#27272a] text-[#a1a1aa] px-2.5 py-1.5 rounded-lg shrink-0">
                       {r?.Abbrev || l.roomId || "?"}
                     </span>
                   </motion.div>

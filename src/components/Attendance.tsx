@@ -84,20 +84,22 @@ export default function Attendance() {
       ) : (
         <>
           {/* ── Summary cards ── */}
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
             {[
-              { label: 'Celkem hodin',   value: totalAll,      color: 'text-[#fafafa]',    bg: 'bg-[#18181b]',        icon: Clock        },
-              { label: 'Omluveno',       value: totalOk,       color: 'text-emerald-400',  bg: 'bg-emerald-500/10',   icon: CheckCircle2 },
-              { label: 'Neomluveno',     value: totalMissed,   color: 'text-rose-400',     bg: 'bg-rose-500/10',      icon: AlertCircle  },
-              { label: 'Nezpracováno',   value: totalUnsolved, color: 'text-amber-400',    bg: 'bg-amber-500/10',     icon: Clock        },
+              { label: 'Celkem',       value: totalAll,      color: 'text-[#fafafa]',    bg: 'bg-[#27272a]',        icon: Clock        },
+              { label: 'Omluveno',     value: totalOk,       color: 'text-emerald-400',  bg: 'bg-emerald-500/10',   icon: CheckCircle2 },
+              { label: 'Neomluveno',   value: totalMissed,   color: 'text-rose-400',     bg: 'bg-rose-500/10',      icon: AlertCircle  },
+              { label: 'Nezpracováno', value: totalUnsolved, color: 'text-amber-400',    bg: 'bg-amber-500/10',     icon: Clock        },
             ].map(s => (
               <motion.div key={s.label} initial={{opacity:0,y:8}} animate={{opacity:1,y:0}}
                 className="glass-card p-4">
-                <div className={cn('w-8 h-8 rounded-lg flex items-center justify-center mb-3', s.bg, s.color)}>
-                  <s.icon size={16} />
+                <div className={cn('w-9 h-9 rounded-xl flex items-center justify-center mb-3', s.bg, s.color)}>
+                  <s.icon size={18} />
                 </div>
-                <p className="text-[10px] font-medium text-[#71717a] uppercase tracking-wider">{s.label}</p>
-                <p className={cn('text-2xl font-bold mt-1', s.color)}>{s.value} <span className="text-sm font-normal">h</span></p>
+                <p className="text-[11px] font-medium text-[#71717a] uppercase tracking-wider">{s.label}</p>
+                <p className={cn('text-3xl font-bold mt-1 tracking-tight', s.color)}>
+                  {s.value}<span className="text-sm font-normal ml-1 text-[#71717a]">h</span>
+                </p>
               </motion.div>
             ))}
           </div>
