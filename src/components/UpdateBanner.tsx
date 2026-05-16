@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Download, X, ArrowUpCircle } from 'lucide-react';
 
-const CURRENT_VERSION_CODE = 2;
+const CURRENT_VERSION_CODE = 1;
 const DISMISS_KEY = 'bakUpdateDismissed';
 const VERSION_URL = '/version.json';
 

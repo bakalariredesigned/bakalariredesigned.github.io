@@ -217,8 +217,8 @@ async function startServer() {
   app.get('/api/version', (_req, res) => {
     res.json({
       versionCode: 2,
-      versionName: '1.1.0',
-      notes: 'Vylepšené mobilní rozhraní, tmavý theme pro Android, lepší viditelnost',
+      versionName: '2.0',
+      notes: 'Vylepšené mobilní rozhraní, tmavý Android theme, nová ikona, lepší splash screen',
       required: false,
     });
   });
